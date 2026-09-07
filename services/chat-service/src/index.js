@@ -7,21 +7,21 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import connectDB from "./config/db.js";
-import redis from "./config/redis.js";
-import authRoutes from "./routes/auth.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 
 const app = express();
 
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 8002;
 
 // DATABASE
+
 await connectDB();
 
 // MIDDLEWARE
 
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL,
+        origin: "http://localhost:5173",
         credentials: true,
     })
 );
@@ -31,19 +31,26 @@ app.use(express.json());
 app.use(cookieParser());
 
 // HEALTH CHECK
-app.get("/", async (req, res) => {
+
+app.get("/", (req, res) => {
     res.json({
         success: true,
-        message: "AI Workspace Auth Service is running",
-        redis: redis.status,
+        message: "AI Workspace Chat Service is running",
     });
 });
 
-// AUTH ROUTES
-app.use("/auth", authRoutes);
+// CHAT ROUTES
+
+app.use(
+    "/chat",
+    chatRoutes
+);
+
 // START SERVER
+
+
 app.listen(PORT, () => {
     console.log(
-        ` Auth Service running on http://localhost:${PORT}`
+        ` Chat Service running on http://localhost:${PORT}`
     );
 });
