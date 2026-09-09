@@ -115,26 +115,16 @@ export const getMessages = async (req, res) => {
 };
 
 // SEND USER MESSAGE
-
 export const sendMessage = async (req, res) => {
     try {
         const userId = req.user._id;
-
         const { chatId } = req.params;
-
         const { content } = req.body;
 
         if (!content || !content.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Message content is required",
-            });
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(chatId)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid chat ID format",
             });
         }
 
@@ -150,7 +140,10 @@ export const sendMessage = async (req, res) => {
             });
         }
 
-        const message = await Message.create({
+        // 1. Save USER message
+
+
+        const userMessage = await Message.create({
             chatId,
             userId,
             role: "user",
@@ -158,14 +151,68 @@ export const sendMessage = async (req, res) => {
         });
 
         chat.lastMessage = content.trim();
-
         await chat.save();
+
+  
+        // 2. Call Agent Service
+    
+
+        const agentResponse = await fetch(
+            `${process.env.AGENT_SERVICE}/agent/run`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                },
+
+                body: JSON.stringify({
+                    message: content.trim(),
+                }),
+            }
+        );
+
+        if (!agentResponse.ok) {
+            console.error(
+                "Agent Service returned:",
+                agentResponse.status
+            );
+
+            return res.status(502).json({
+                success: false,
+                message: "AI Agent Service unavailable",
+                userMessage,
+            });
+        }
+
+        const agentData = await agentResponse.json();
+
+   // 3. Save ASSISTANT message
+
+        const assistantMessage = await Message.create({
+            chatId,
+            userId,
+            role: "assistant",
+            content: agentData.response,
+        });
+
+        chat.lastMessage = agentData.response;
+        await chat.save();
+
+        // 4. Return both messages
+
 
         return res.status(201).json({
             success: true,
-            message,
-        });
 
+            userMessage,
+
+            assistantMessage,
+
+            agent: {
+                route: agentData.route,
+            },
+        });
     } catch (error) {
         console.error(
             "Send message error:",
@@ -174,7 +221,7 @@ export const sendMessage = async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: "Failed to send message",
+            message: "Failed to process message",
         });
     }
 };
