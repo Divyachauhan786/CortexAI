@@ -195,7 +195,7 @@ services:
       - qdrant_data:/qdrant/storage
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:6333/readyz"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/6333'"]
       interval: 15s
       timeout: 5s
       start_period: 15s
