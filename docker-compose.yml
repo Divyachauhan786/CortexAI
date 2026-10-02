@@ -49,7 +49,7 @@ services:
       PORT: 8000
       NODE_ENV: production
       # Docker internal service names – NOT localhost
-      FRONTEND_URL: ${VITE_API_GATEWAY_URL:-http://localhost:5173}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       AUTH_SERVICE: http://auth-service:8001
       CHAT_SERVICE: http://chat-service:8002
       AGENT_SERVICE: http://agent-service:8003
