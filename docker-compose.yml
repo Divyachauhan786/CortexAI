@@ -169,8 +169,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: cortexai-redis
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
@@ -188,9 +186,6 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.13.4
     container_name: cortexai-qdrant
-    ports:
-      - "6333:6333"   # REST API
-      - "6334:6334"   # gRPC API
     volumes:
       - qdrant_data:/qdrant/storage
     restart: unless-stopped
