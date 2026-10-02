@@ -7,7 +7,25 @@ import {
     deleteSession,
 } from "../services/session.service.js";
 
+import { firebaseAdminAuth } from "../config/firebaseAdmin.js";
+
+const isProduction = process.env.NODE_ENV === "production";
+
+// ==========================================
+// COOKIE OPTIONS
+// ==========================================
+
+const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    path: "/",
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+};
+
+// ==========================================
 // REGISTER
+// ==========================================
 
 export const register = async (req, res) => {
     try {
@@ -27,7 +45,7 @@ export const register = async (req, res) => {
             });
         }
 
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = email.toLowerCase().trim();
 
         const existingUser = await User.findOne({
             email: normalizedEmail,
@@ -40,10 +58,7 @@ export const register = async (req, res) => {
             });
         }
 
-        const hashedPassword = await bcrypt.hash(
-            password,
-            12
-        );
+        const hashedPassword = await bcrypt.hash(password, 12);
 
         const user = await User.create({
             name,
@@ -51,18 +66,14 @@ export const register = async (req, res) => {
             password: hashedPassword,
         });
 
-        const sessionId = await createSession(
-            user._id
-        );
+        const sessionId = await createSession(user._id);
 
-        res.cookie("sessionId", sessionId, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production"
-                ? "none"
-                : "lax",
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-        });
+        res.cookie("sessionId", sessionId, cookieOptions);
+
+        console.log(
+            "Session created for user:",
+            user._id.toString()
+        );
 
         return res.status(201).json({
             success: true,
@@ -86,7 +97,9 @@ export const register = async (req, res) => {
     }
 };
 
+// ==========================================
 // LOGIN
+// ==========================================
 
 export const login = async (req, res) => {
     try {
@@ -99,7 +112,7 @@ export const login = async (req, res) => {
             });
         }
 
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = email.toLowerCase().trim();
 
         const user = await User.findOne({
             email: normalizedEmail,
@@ -109,6 +122,14 @@ export const login = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "Invalid email or password",
+            });
+        }
+
+        // Google-only users don't have a local password.
+        if (!user.password) {
+            return res.status(401).json({
+                success: false,
+                message: "This account uses Google Sign-In",
             });
         }
 
@@ -124,18 +145,14 @@ export const login = async (req, res) => {
             });
         }
 
-        const sessionId = await createSession(
-            user._id
-        );
+        const sessionId = await createSession(user._id);
 
-        res.cookie("sessionId", sessionId, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production"
-                ? "none"
-                : "lax",
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-        });
+        res.cookie("sessionId", sessionId, cookieOptions);
+
+        console.log(
+            "Login successful. Session created:",
+            user._id.toString()
+        );
 
         return res.status(200).json({
             success: true,
@@ -158,14 +175,135 @@ export const login = async (req, res) => {
         });
     }
 };
+
+// ==========================================
+// GOOGLE LOGIN
+// ==========================================
+
+export const googleLogin = async (req, res) => {
+    try {
+        const { idToken } = req.body;
+
+        if (!idToken) {
+            return res.status(400).json({
+                success: false,
+                message: "Firebase ID token is required",
+            });
+        }
+
+        // Verify Firebase ID token
+        const decodedToken = await firebaseAdminAuth.verifyIdToken(
+            idToken
+        );
+
+        const {
+            uid,
+            email,
+            name,
+            picture,
+            email_verified,
+        } = decodedToken;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Google account email is required",
+            });
+        }
+
+        if (!email_verified) {
+            return res.status(401).json({
+                success: false,
+                message: "Google email is not verified",
+            });
+        }
+
+        const normalizedEmail = email.toLowerCase().trim();
+
+        // First try to find the user using Firebase UID.
+        let user = await User.findOne({
+            firebaseUid: uid,
+        });
+
+        // If the user doesn't exist by Firebase UID,
+        // check whether an existing account uses the same email.
+        if (!user) {
+            user = await User.findOne({
+                email: normalizedEmail,
+            });
+        }
+
+        // Existing user
+        if (user) {
+            // Link Firebase UID if this account has not been linked yet.
+            if (!user.firebaseUid) {
+                user.firebaseUid = uid;
+            }
+
+            // Update profile information from Google when available.
+            if (name) {
+                user.name = name;
+            }
+
+            if (picture) {
+                user.avatar = picture;
+            }
+
+            await user.save();
+        }
+
+        // New Google user
+        if (!user) {
+            user = await User.create({
+                name: name || normalizedEmail.split("@")[0],
+                email: normalizedEmail,
+                password: null,
+                firebaseUid: uid,
+                avatar: picture || "",
+                credits: 100,
+            });
+        }
+
+        // Create the same Redis session used by normal login.
+        const sessionId = await createSession(user._id);
+
+        // Store session in HTTP-only cookie.
+        res.cookie("sessionId", sessionId, cookieOptions);
+
+        console.log(
+            "Google login successful. Session created:",
+            user._id.toString()
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Google login successful",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+                credits: user.credits,
+            },
+        });
+
+    } catch (error) {
+        console.error("Google login error:", error);
+
+        return res.status(401).json({
+            success: false,
+            message: "Invalid or expired Firebase ID token",
+        });
+    }
+};
+
 // ==========================================
 // LOGOUT
 // ==========================================
 
 export const logout = async (req, res) => {
     try {
-
-        const sessionId = req.cookies.sessionId;
+        const sessionId = req.cookies?.sessionId;
 
         if (sessionId) {
             await deleteSession(sessionId);
@@ -173,10 +311,9 @@ export const logout = async (req, res) => {
 
         res.clearCookie("sessionId", {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: process.env.NODE_ENV === "production"
-                ? "none"
-                : "lax",
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            path: "/",
         });
 
         return res.status(200).json({

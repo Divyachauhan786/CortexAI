@@ -3,6 +3,7 @@ import express from "express";
 import {
     register,
     login,
+    googleLogin,
     logout,
 } from "../controllers/auth.controller.js";
 
@@ -10,16 +11,21 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-
-// Public routes
+// ==========================================
+// PUBLIC ROUTES
+// ==========================================
 
 router.post("/register", register);
 
 router.post("/login", login);
 
+router.post("/google", googleLogin);
+
 router.post("/logout", logout);
 
-// Protected route
+// ==========================================
+// PROTECTED ROUTES
+// ==========================================
 
 router.get(
     "/me",

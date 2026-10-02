@@ -1,15 +1,60 @@
+# ==============================
+# Dependencies
+# ==============================
 node_modules/
+
+# ==============================
+# Environment / Secrets
+# ==============================
 .env
 .env.*
 !.env.example
 
+# Firebase / service-account credentials
+credentials/
+**/credentials/*.json
+**/*firebase-adminsdk*.json
+
+# ==============================
+# Build output
+# ==============================
 dist/
 build/
 
+# ==============================
+# Test / coverage
+# ==============================
 coverage/
 
+# ==============================
+# Logs
+# ==============================
 logs/
-
 *.log
 
+# ==============================
+# Runtime / uploaded files
+# ==============================
+uploads/
+**/uploads/
+
+# ==============================
+# OS / Editor
+# ==============================
 .DS_Store
+Thumbs.db
+
+.vscode/
+.idea/
+
+# ==============================
+# Temporary / local files
+# ==============================
+*.tmp
+*.temp
+*.bak
+
+# ==============================
+# VS Code extensions / local tools
+# ==============================
+*.vsix

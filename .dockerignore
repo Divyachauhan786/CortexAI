@@ -1,0 +1,12 @@
+# Root-level files that should never go into any Docker build context
+.env
+.env.*
+.git
+.gitignore
+node_modules
+npm-debug.log*
+*.log
+.DS_Store
+
+# Service-level credentials should never be at the root level either
+services/auth-service/credentials

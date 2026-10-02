@@ -7,6 +7,7 @@ import {
     getChats,
     getMessages,
     sendMessage,
+    streamMessage
 } from "../controllers/chat.controller.js";
 
 const router = express.Router();
@@ -47,5 +48,7 @@ router.post(
     "/:chatId/messages",
     sendMessage
 );
+router.post("/:chatId/stream", streamMessage);
+
 
 export default router;

@@ -16,10 +16,19 @@ const userSchema = new mongoose.Schema(
             trim: true,
         },
 
+        // Password is required for normal email/password accounts,
+        // but optional for Google/Firebase accounts.
         password: {
             type: String,
-            required: true,
             minlength: 6,
+            default: null,
+        },
+
+        // Firebase UID for Google authenticated users
+        firebaseUid: {
+            type: String,
+            unique: true,
+            sparse: true,
         },
 
         avatar: {
