@@ -23,6 +23,10 @@ const chatSchema = new mongoose.Schema(
         timestamps: true,
     }
 );
+chatSchema.index({
+    userId: 1,
+    updatedAt: -1,
+});
 
 const Chat = mongoose.model(
     "Chat",
