@@ -14,7 +14,7 @@ app.use(
     })
 );
 
-app.use(express.json());
+
 
 // Auth Service
 app.use(
