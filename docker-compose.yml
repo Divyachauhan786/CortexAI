@@ -29,7 +29,7 @@ services:
         VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
     container_name: cortexai-frontend
     ports:
-      - "5173:80"
+      - "5174:80"
     depends_on:
       gateway:
         condition: service_healthy
@@ -44,7 +44,7 @@ services:
       dockerfile: Dockerfile
     container_name: cortexai-gateway
     ports:
-      - "8000:8000"
+      - "8080:8000"
     environment:
       PORT: 8000
       NODE_ENV: production
