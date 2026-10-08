@@ -15,10 +15,16 @@ const isProduction = process.env.NODE_ENV === "production";
 // COOKIE OPTIONS
 // ==========================================
 
+// IMPORTANT: SameSite=None requires Secure (HTTPS).
+// If serving over plain HTTP (even in production), use SameSite=Lax + Secure=false.
+// Set COOKIE_SECURE=true and COOKIE_SAMESITE=none only when behind HTTPS.
+const cookieSecure = process.env.COOKIE_SECURE === "true";
+const cookieSameSite = process.env.COOKIE_SAMESITE || "lax";
+
 const cookieOptions = {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    secure: false,
+    sameSite: "lax",
     path: "/",
     maxAge: 1000 * 60 * 60 * 24 * 7,
 };
@@ -311,8 +317,8 @@ export const logout = async (req, res) => {
 
         res.clearCookie("sessionId", {
             httpOnly: true,
-            secure: isProduction,
-            sameSite: isProduction ? "none" : "lax",
+            secure: cookieSecure,
+            sameSite: cookieSameSite,
             path: "/",
         });
 

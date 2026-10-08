@@ -37,7 +37,17 @@ app.use(
 
 connectDB()
     .then(async () => {
-        await initializeCollection();
+        // Qdrant is optional for local dev — RAG features degrade gracefully
+        // if it's not running. Start Qdrant with:
+        //   docker run -d --name qdrant-local -p 6333:6333 qdrant/qdrant:v1.13.4
+        try {
+            await initializeCollection();
+        } catch (qdrantError) {
+            console.warn(
+                "[Agent Service] Qdrant unavailable — RAG/document features disabled.",
+                qdrantError.message
+            );
+        }
 
         app.listen(PORT, () => {
             console.log(
@@ -48,6 +58,7 @@ connectDB()
     .catch((error) => {
         console.error(
             "Failed to start Agent Service:",
-            error.message
+            error.message,
+            error
         );
     });
