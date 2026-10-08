@@ -545,6 +545,3 @@ https://github.com/Divyachauhan786
 ⭐ Project
 
 If you find CortexAI interesting, feel free to explore the repository and follow the project development.
-
-roject README"
-git push
