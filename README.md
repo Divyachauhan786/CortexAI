@@ -334,7 +334,12 @@ CortexAI/
 ├── .gitignore
 └── README.md
 🖥️ Screenshots
-<img width="1511" height="887" alt="Screenshot 2026-09-22 200934" src="https://github.com/user-attachments/assets/4d125ace-c455-4af3-9263-fc778f7a2d6d" /><img width="1886" height="617" alt="Screenshot 2026-09-22 201351" src="https://github.com/user-attachments/assets/08ea1f17-60c1-4a50-82ab-b6aa74192de5" />
+<img width="1507" height="535" alt="Screenshot 2026-09-22 201558" src="https://github.com/user-attachments/assets/9fdaca19-5bfa-4e82-a2a3-d12fd3315e98" />
+<img width="1886" height="617" alt="Screenshot 2026-09-22 201351" src="https://github.com/user-attachments/assets/964656e9-376d-4a38-8685-3d841697b21d" />
+<img width="1511" height="887" alt="Screenshot 2026-09-22 200934" src="https://github.com/user-attachments/assets/6ced70fe-b8fd-4d90-9e72-47a0e6dd41ff" />
+<img width="1525" height="606" alt="Screenshot 2026-09-22 201157" src="https://github.com/user-attachments/assets/85189c4a-10ea-46a7-af38-7d9c56fd5649" />
+<img width="560" height="307" alt="Screenshot 2026-09-22 200949" src="https://github.com/user-attachments/assets/73c35551-04c4-47d6-bf0d-371ed66b2ba8" />
+
 
 🔄 Request Flow
 
